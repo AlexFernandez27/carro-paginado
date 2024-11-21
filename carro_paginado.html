@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tienda</title>
+    <style>
+        header nav {
+            display: flex;
+            justify-content: space-evenly;
+            margin-left: 200px;
+        }
+        header nav a {
+            text-decoration: none;
+            font-size: 40px;
+            color: aliceblue;
+            border: 2px solid black;
+            border-radius: 6px;
+            background-color: rgb(21, 113, 117);
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+        .producto {
+            display: flex;
+            justify-content: space-evenly;
+            align-items: center;
+            margin-top: 20px;
+            border: 2px solid black;
+            border-radius: 10px;
+            font-size: 25px;
+        }
+        .producto img {
+            max-width: 150px;
+            margin-right: 10px;
+        }
+        #paginacion-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+        #paginacion-container button {
+            font-size: 20px;
+            margin: 0 5px;
+            padding: 10px 20px;
+            background-color: rgb(21, 113, 117);
+            color: white;
+            border: 2px solid black;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        #paginacion-container button:disabled {
+            background-color: gray;
+            cursor: not-allowed;
+        }
+       #dateTimeContainer{
+        justify-content: center;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 20px;
+        color: black;
+        text-align: center;
+        background-color: gray;
+       }
+       h3 {
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 20px;
+        color: black;
+        text-align: center;
+        background-color: gray; /* Color de fondo gris */
+        display: flex;  /* Ajusta el fondo al tamaño del texto */
+        padding: 10px;          /* Añade espacio alrededor del texto */
+        margin: 0;              /* Ajusta el margen si es necesario */
+    }
+    footer{
+        margin-top: 20px;
+    }
+    
+    </style>
+    <script>
+        // Se crea la constante con todos los productos y datos de los mismos
+        const elementos = [
+            { nombre: "x", descripcion: "Color", precio: 1500, imagen: "1.jpeg" },
+            { nombre: "xx", descripcion: "Color", precio: 1700, imagen: "2.jpeg" },
+            { nombre: "xxx", descripcion: "Color", precio: 1100, imagen: "3.jpeg" },
+            { nombre: "xxxx", descripcion: "Color", precio: 1500, imagen: "4.jpeg" },
+            { nombre: "xxxxx", descripcion: "Color", precio: 1700, imagen: "5.jpeg" },
+            { nombre: "xxxxxx", descripcion: "Color", precio: 1100, imagen: "6.jpeg" }
+            
+            
+            
+            // Agrega más productos aquí
+        ];
+
+        let carrito = [];
+        let currentPage = 1;
+        const itemsPerPage = 4;
+
+        function mostrarPagina(pagina) {
+            const productosContainer = document.getElementById("productos-container");
+            productosContainer.innerHTML = "";
+            const inicio = (pagina - 1) * itemsPerPage;
+            const fin = Math.min(inicio + itemsPerPage, elementos.length);
+
+            for (let i = inicio; i < fin; i++) {
+                const elemento = elementos[i];
+                productosContainer.innerHTML += `
+                    <div class="producto">
+                        <img src="${elemento.imagen}" alt="${elemento.nombre}">
+                        <p>${elemento.nombre} - Precio: $${elemento.precio}</p>
+                        <label for="cantidad-${i}">Cantidad:</label>
+                        <input type="number" id="cantidad-${i}" placeholder="Cantidad" min="0"><br>
+                        <button onclick="agregarAlCarrito(${i})"><img src="carrito.gif" alt="Agregar al carrito"></button>
+                    </div>`;
+            }
+            actualizarPaginacion(pagina);
+        }
+
+        function actualizarPaginacion(pagina) {
+            const paginacionContainer = document.getElementById("paginacion-container");
+            paginacionContainer.innerHTML = "";
+
+            const totalPages = Math.ceil(elementos.length / itemsPerPage);
+
+            if (totalPages > 1) {
+                const createButton = (text, page, disabled) => {
+                    const button = document.createElement("button");
+                    button.textContent = text;
+                    button.onclick = () => mostrarPagina(page);
+                    button.disabled = disabled;
+                    return button;
+                };
+
+                // Botón de "Anterior"
+                paginacionContainer.appendChild(createButton("Anterior", currentPage - 1, currentPage === 1));
+
+                // Botones de páginas
+                for (let i = 1; i <= totalPages; i++) {
+                    paginacionContainer.appendChild(createButton(i, i, false));
+                }
+
+                // Botón de "Siguiente"
+                paginacionContainer.appendChild(createButton("Siguiente", currentPage + 1, currentPage === totalPages));
+            }
+        }
+
+        function agregarAlCarrito(index) {
+            const cantidad = parseInt(document.getElementById(`cantidad-${index}`).value);
+            if (cantidad > 0) {
+                const elementoSeleccionado = elementos[index];
+                const subtotal = elementoSeleccionado.precio * cantidad;
+                carrito.push({ elemento: elementoSeleccionado, cantidad: cantidad, subtotal: subtotal });
+                actualizarCarrito();
+            } else {
+                alert("La cantidad debe ser mayor que cero");
+            }
+        }
+
+        function actualizarCarrito() {
+            const carritoContainer = document.getElementById("carrito-container");
+            carritoContainer.innerHTML = "";
+            let totalAPagar = 0;
+            carrito.forEach((item, index) => {
+                carritoContainer.innerHTML += `
+                    <div class="producto">
+                        <img src="${item.elemento.imagen}" alt="${item.elemento.nombre}">
+                        <p>${item.elemento.nombre} - Precio: $${item.elemento.precio} - Cantidad: ${item.cantidad} - 
+                        Subtotal: $${item.subtotal.toFixed(2)}</p>
+                    </div>`;
+                totalAPagar += item.subtotal;
+            });
+        
+            // Obtiene la fecha y hora actual
+            const now = new Date();
+            const formattedDate = now.toLocaleDateString('es-AR', {
+                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+            });
+            const formattedTime = now.toLocaleTimeString('es-AR');
+        
+            // Añade la fecha y hora al total a pagar
+            carritoContainer.innerHTML += `
+                <h2>Total a pagar: $${totalAPagar.toFixed(2)}</h2>
+                <p>Fecha de compra: ${formattedDate} - Hora: ${formattedTime}</p>`;
+        }
+        
+
+        function limpiarCarrito() {
+            carrito = [];
+            const carritoContainer = document.getElementById("carrito-container");
+            carritoContainer.innerHTML = ""; // Limpia el contenido del carrito, incluyendo la fecha y hora
+        }
+        
+
+        // Inicializa la vista con la primera página
+        document.addEventListener("DOMContentLoaded", () => {
+            mostrarPagina(currentPage);
+        });
+    </script>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="#">Inicio</a>
+            <a href="#">Productos</a>
+            <a href="carrogeneral.html">Tienda</a>
+            <a href="#">Contacto</a>
+        </nav>
+    </header>
+    <h1>Tienda</h1>
+    <div id="productos-container">
+        <!-- Los productos se mostrarán aquí -->
+    </div>
+    <div id="paginacion-container">
+        <!-- Los botones de paginación se mostrarán aquí -->
+    </div>
+    <hr>
+    <h1>Carrito de compras</h1>
+    <div id="carrito-container">
+        <!-- El contenido del carrito se mostrará aquí -->
+    </div>
+    <button onclick="limpiarCarrito()">Limpiar Carrito</button>
+
+    <footer>
+        <h3>Contacto : 123123123</h3>
+        <div id="dateTimeContainer"></div>
+
+        <script>
+            function updateDateTime() {
+                // Obtiene la fecha y hora actual
+                const now = new Date();
+                // Formatea la fecha y hora
+                const formattedDate = now.toLocaleDateString('es-AR', {
+                    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+                });
+                const formattedTime = now.toLocaleTimeString('es-AR');
+                
+                // Muestra la fecha y hora en el contenedor
+                const dateTimeContainer = document.getElementById('dateTimeContainer');
+                dateTimeContainer.innerHTML = `Fecha: ${formattedDate} - Hora: ${formattedTime}`;
+            }
+    
+            // Actualiza la fecha y hora inmediatamente
+            updateDateTime();
+    
+            // Configura un intervalo para actualizar la fecha y hora cada segundo
+            setInterval(updateDateTime, 1000);
+        </script>
+
+    </footer>
+</body>
+</html>
